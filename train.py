@@ -60,10 +60,12 @@ def train(args):
         mlflow.log_metric("accuracy", acc)
         mlflow.log_metric("precision", prec)
 
+        # Save model locally (safe)
         os.makedirs("models", exist_ok=True)
         joblib.dump(model, "models/model.pkl")
 
-        mlflow.sklearn.log_model(model, "model")
+        # ❌ REMOVE THIS LINE (causing error)
+        # mlflow.sklearn.log_model(model, "model")
 
         print("Accuracy:", acc)
         print("Precision:", prec)
