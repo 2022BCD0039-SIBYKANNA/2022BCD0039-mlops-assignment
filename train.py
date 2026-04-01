@@ -4,9 +4,7 @@ import mlflow
 import mlflow.sklearn
 import argparse
 import joblib
-
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("2022BCD0039_experiment")
+import os
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -14,17 +12,21 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score
 
 
+# MLflow setup
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_experiment("2022BCD0039_experiment")
+
 
 def load_data(path):
     df = pd.read_csv(path)
 
-    # Drop unnecessary columns
+    # Select required columns
     df = df[['Survived', 'Pclass', 'Sex', 'Age', 'Fare']]
 
-    # Handle missing values
-    df['Age'].fillna(df['Age'].mean(), inplace=True)
+    # Handle missing values (FIXED warning)
+    df['Age'] = df['Age'].fillna(df['Age'].mean())
 
-    # Encode categorical
+    # Encode categorical column
     le = LabelEncoder()
     df['Sex'] = le.fit_transform(df['Sex'])
 
@@ -37,7 +39,7 @@ def train(args):
     X = df.drop('Survived', axis=1)
     y = df['Survived']
 
-    # Feature selection (optional)
+    # Optional feature selection
     if args.use_subset:
         X = X[['Pclass', 'Sex']]
 
@@ -51,7 +53,7 @@ def train(args):
         random_state=42
     )
 
-    with mlflow.start_run(experiment_id=mlflow.set_experiment("2022BCD0039_experiment").experiment_id):
+    with mlflow.start_run():
         model.fit(X_train, y_train)
 
         preds = model.predict(X_test)
@@ -59,7 +61,7 @@ def train(args):
         acc = accuracy_score(y_test, preds)
         prec = precision_score(y_test, preds)
 
-        # Log params
+        # Log parameters
         mlflow.log_param("n_estimators", args.n_estimators)
         mlflow.log_param("max_depth", args.max_depth)
         mlflow.log_param("use_subset", args.use_subset)
@@ -67,6 +69,9 @@ def train(args):
         # Log metrics
         mlflow.log_metric("accuracy", acc)
         mlflow.log_metric("precision", prec)
+
+        # ✅ Create models folder (FIX)
+        os.makedirs("models", exist_ok=True)
 
         # Save model
         joblib.dump(model, "models/model.pkl")
