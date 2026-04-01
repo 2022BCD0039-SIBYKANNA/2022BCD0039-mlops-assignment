@@ -5,12 +5,14 @@ import mlflow.sklearn
 import argparse
 import joblib
 
+mlflow.set_tracking_uri("sqlite:///mlflow.db")
+mlflow.set_experiment("2022BCD0039_experiment")
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score
 
-mlflow.set_experiment("2022BCD0039_experiment")
 
 
 def load_data(path):
@@ -49,7 +51,7 @@ def train(args):
         random_state=42
     )
 
-    with mlflow.start_run():
+    with mlflow.start_run(experiment_id=mlflow.set_experiment("2022BCD0039_experiment").experiment_id):
         model.fit(X_train, y_train)
 
         preds = model.predict(X_test)
