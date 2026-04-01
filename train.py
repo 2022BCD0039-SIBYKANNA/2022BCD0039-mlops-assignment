@@ -7,7 +7,7 @@ import argparse
 import joblib
 import os
 
-# ✅ FIX 1: Use relative path for MLflow (important for GitHub Actions)
+# MLflow setup (relative path for CI)
 mlflow.set_tracking_uri("sqlite:///./mlflow.db")
 mlflow.set_experiment("2022BCD0039_experiment")
 
@@ -23,10 +23,10 @@ def load_data(path):
     # Select required columns
     df = df[['Survived', 'Pclass', 'Sex', 'Age', 'Fare']]
 
-    # ✅ FIX 2: Avoid chained assignment warning
+    # Fix missing values (no chained assignment warning)
     df['Age'] = df['Age'].fillna(df['Age'].mean())
 
-    # Encode categorical column
+    # Encode categorical
     le = LabelEncoder()
     df['Sex'] = le.fit_transform(df['Sex'])
 
@@ -39,7 +39,6 @@ def train(args):
     X = df.drop('Survived', axis=1)
     y = df['Survived']
 
-    # Optional feature subset
     if args.use_subset:
         X = X[['Pclass', 'Sex']]
 
@@ -53,7 +52,6 @@ def train(args):
         random_state=42
     )
 
-    # Start MLflow run
     with mlflow.start_run():
         model.fit(X_train, y_train)
 
@@ -62,22 +60,20 @@ def train(args):
         acc = accuracy_score(y_test, preds)
         prec = precision_score(y_test, preds)
 
-        # Log parameters
         mlflow.log_param("n_estimators", args.n_estimators)
         mlflow.log_param("max_depth", args.max_depth)
         mlflow.log_param("use_subset", args.use_subset)
 
-        # Log metrics
         mlflow.log_metric("accuracy", acc)
         mlflow.log_metric("precision", prec)
 
-        # ✅ FIX 3: Ensure models folder exists
+        # Ensure models folder exists
         os.makedirs("./models", exist_ok=True)
 
-        # Save model locally
+        # Save model
         joblib.dump(model, "./models/model.pkl")
 
-        # Log model in MLflow
+        # Log model
         mlflow.sklearn.log_model(model, "model")
 
         print("Accuracy:", acc)
