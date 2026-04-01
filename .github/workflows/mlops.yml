@@ -1,5 +1,5 @@
 name: MLOps Pipeline
-# trigger update
+# trigger updates
 on:
   push:
     branches:
