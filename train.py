@@ -1,3 +1,4 @@
+```python
 import pandas as pd
 import numpy as np
 import mlflow
@@ -6,15 +7,14 @@ import argparse
 import joblib
 import os
 
+# ✅ FIX 1: Use relative path for MLflow (important for GitHub Actions)
+mlflow.set_tracking_uri("sqlite:///./mlflow.db")
+mlflow.set_experiment("2022BCD0039_experiment")
+
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score
-
-
-# MLflow setup
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("2022BCD0039_experiment")
 
 
 def load_data(path):
@@ -23,7 +23,7 @@ def load_data(path):
     # Select required columns
     df = df[['Survived', 'Pclass', 'Sex', 'Age', 'Fare']]
 
-    # Handle missing values (FIXED warning)
+    # ✅ FIX 2: Avoid chained assignment warning
     df['Age'] = df['Age'].fillna(df['Age'].mean())
 
     # Encode categorical column
@@ -39,7 +39,7 @@ def train(args):
     X = df.drop('Survived', axis=1)
     y = df['Survived']
 
-    # Optional feature selection
+    # Optional feature subset
     if args.use_subset:
         X = X[['Pclass', 'Sex']]
 
@@ -53,6 +53,7 @@ def train(args):
         random_state=42
     )
 
+    # Start MLflow run
     with mlflow.start_run():
         model.fit(X_train, y_train)
 
@@ -70,11 +71,13 @@ def train(args):
         mlflow.log_metric("accuracy", acc)
         mlflow.log_metric("precision", prec)
 
-        # ✅ Create models folder (FIX)
-        os.makedirs("models", exist_ok=True)
+        # ✅ FIX 3: Ensure models folder exists
+        os.makedirs("./models", exist_ok=True)
 
-        # Save model
-        joblib.dump(model, "models/model.pkl")
+        # Save model locally
+        joblib.dump(model, "./models/model.pkl")
+
+        # Log model in MLflow
         mlflow.sklearn.log_model(model, "model")
 
         print("Accuracy:", acc)
@@ -92,3 +95,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     train(args)
+```
