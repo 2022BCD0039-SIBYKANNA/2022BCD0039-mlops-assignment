@@ -18,16 +18,19 @@ def load_data(path):
 df = pd.read_csv(path)
 df = df[['Survived', 'Pclass', 'Sex', 'Age', 'Fare']]
 
+```
 df['Age'] = df['Age'].fillna(df['Age'].mean())
 
 le = LabelEncoder()
 df['Sex'] = le.fit_transform(df['Sex'])
 
 return df
+```
 
 def train(args):
 df = load_data(args.data_path)
 
+```
 X = df.drop('Survived', axis=1)
 y = df['Survived']
 
@@ -66,12 +69,12 @@ with mlflow.start_run():
 
     print("Accuracy:", acc)
     print("Precision:", prec)
-
+```
 
 if **name** == "**main**":
 parser = argparse.ArgumentParser()
 
-
+```
 parser.add_argument("--data_path", type=str, default="data/titanic.csv")
 parser.add_argument("--n_estimators", type=int, default=100)
 parser.add_argument("--max_depth", type=int, default=5)
@@ -80,5 +83,4 @@ parser.add_argument("--use_subset", action="store_true")
 args = parser.parse_args()
 
 train(args)
-
-
+```
